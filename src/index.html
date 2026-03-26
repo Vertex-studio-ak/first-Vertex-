@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vertex</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/extras.css" />
+</head>
+<body>
+
+<div id="app">
+  <script>
+    // Resilient Window Controls (Independent of browser.js)
+    window.addEventListener('DOMContentLoaded', () => {
+      const getWin = () => {
+        try {
+          if (window.__TAURI__ && window.__TAURI__.window) return window.__TAURI__.window.getCurrentWindow();
+          if (window.__TAURI_INTERNALS__) return { 
+            close: () => window.__TAURI__.core.invoke('tauri/window/close'),
+            minimize: () => window.__TAURI__.core.invoke('tauri/window/minimize'),
+            maximize: () => window.__TAURI__.core.invoke('tauri/window/maximize'),
+            unmaximize: () => window.__TAURI__.core.invoke('tauri/window/unmaximize'),
+            isMaximized: () => window.__TAURI__.core.invoke('tauri/window/is_maximized')
+          };
+        } catch(e) {}
+        return null;
+      };
+
+      const bind = (id, fn) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('click', (e) => {
+          e.preventDefault(); e.stopPropagation();
+          fn();
+        });
+      };
+
+      const win = getWin();
+      if (win) {
+        bind('btn-close', () => win.close());
+        bind('btn-minimize', () => win.minimize());
+        bind('btn-maximize', async () => {
+          const isMax = await win.isMaximized();
+          isMax ? win.unmaximize() : win.maximize();
+        });
+      }
+    });
+  </script>
+
+  <!-- ── Loading progress bar ── -->
+  <div id="loading-bar"></div>
+
+  <!-- ── Custom Titlebar ─────────────────────────────── -->
+  <div id="titlebar">
+    <div class="win-controls no-drag">
+      <button class="win-btn close"  id="btn-close"   title="Close"></button>
+      <button class="win-btn min"    id="btn-minimize" title="Minimize"></button>
+      <button class="win-btn max"    id="btn-maximize" title="Maximize"></button>
+    </div>
+    <span class="browser-title">Vertex</span>
+  </div>
+
+  <!-- ── Tab Bar ─────────────────────────────────────── -->
+  <div id="tabbar">
+    <!-- tabs rendered by JS -->
+    <button id="new-tab-btn" title="New tab">
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- ── Toolbar ─────────────────────────────────────── -->
+  <div id="toolbar">
+    <!-- Back -->
+    <button class="icon-btn" id="btn-back" title="Back">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="10,3 5,8 10,13"/>
+      </svg>
+    </button>
+    <!-- Forward -->
+    <button class="icon-btn" id="btn-forward" title="Forward">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6,3 11,8 6,13"/>
+      </svg>
+    </button>
+    <!-- Reload -->
+    <button class="icon-btn" id="btn-reload" title="Reload">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M13 2.5A6.5 6.5 0 1 1 9.5 1.5"/>
+        <polyline points="13,1 13,4 10,4"/>
+      </svg>
+    </button>
+    <!-- Home -->
+    <button class="icon-btn" id="btn-home" title="New Tab">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 7l6-5 6 5"/><rect x="5" y="9" width="6" height="7" rx="1"/>
+      </svg>
+    </button>
+
+    <!-- Omnibox -->
+    <div id="omnibox-wrap">
+      <input id="omnibox" type="text" autocomplete="off" spellcheck="false" placeholder="Search or enter address…" />
+      <span id="omnibox-icon">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <circle cx="6.5" cy="6.5" r="4.5"/><line x1="10" y1="10" x2="14" y2="14"/>
+        </svg>
+      </span>
+      <div id="autocomplete"></div>
+    </div>
+
+    <!-- Bookmark this page -->
+    <button class="icon-btn" id="btn-bookmark" title="Bookmark page">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 2h10a1 1 0 0 1 1 1v11l-6-3-6 3V3a1 1 0 0 1 1-1z"/>
+      </svg>
+    </button>
+
+    <!-- Sidebar toggle -->
+    <button class="icon-btn" id="btn-sidebar" title="Sidebar">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <rect x="2" y="2" width="12" height="12" rx="2"/>
+        <line x1="10" y1="2" x2="10" y2="14"/>
+      </svg>
+    </button>
+
+    <!-- Settings -->
+    <button class="icon-btn" id="btn-settings" title="Settings">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="2"/>
+        <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/>
+      </svg>
+    </button>
+    <!-- Passwords -->
+    <button class="icon-btn" id="btn-passwords" title="Password Manager">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="7" width="12" height="8" rx="2"/>
+        <path d="M5 7V5a3 3 0 0 1 6 0v2"/>
+        <circle cx="8" cy="11" r="1" fill="currentColor"/>
+      </svg>
+    </button>
+    <!-- Downloads with Progress -->
+    <div id="btn-downloads-wrap" class="icon-btn-wrap">
+      <button class="icon-btn" id="btn-downloads" title="Downloads">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 10l-4 4-4-4M8 2v12"/>
+        </svg>
+      </button>
+      <svg class="progress-ring" width="28" height="28">
+        <circle class="progress-ring-circle" stroke="var(--accent)" stroke-width="2" fill="transparent" r="12" cx="14" cy="14"/>
+      </svg>
+      <span id="downloads-badge" class="badge">0</span>
+    </div>
+  </div>
+
+
+  <!-- ── Bookmarks Bar ───────────────────────────────── -->
+  <div id="bookmarks-bar"></div>
+
+  <!-- ── Main Area (Webview + Sidebar) ─────────── -->
+  <div id="main-area">
+    <!-- ── WebView Container ────────────────────────────── -->
+    <div id="webview-container">
+      <!-- Password Save Prompt -->
+      <div id="pw-save-prompt" class="glass">
+        <div class="pw-prompt-icon">🔑</div>
+        <div class="pw-prompt-body">
+          <div class="pw-prompt-text">Save password for <span id="pw-prompt-site">...</span>?</div>
+          <div class="pw-prompt-sub" id="pw-prompt-user">...</div>
+        </div>
+        <div class="pw-prompt-actions">
+          <button id="btn-pw-ignore" class="pw-btn secondary">Never</button>
+          <button id="btn-pw-save"   class="pw-btn primary">Save</button>
+          <button id="btn-pw-close"  class="pw-btn-close">×</button>
+        </div>
+      </div>
+      <!-- WebView slots injected here by browser.js -->
+    </div>
+    
+    <!-- ── Sidebar panel ───────────────────────────────── -->
+    <div id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-tabs">
+          <div class="sidebar-tab active" data-panel="bookmarks">Bookmarks</div>
+          <div class="sidebar-tab" data-panel="history">History</div>
+          <div class="sidebar-tab" data-panel="downloads">Downloads</div>
+        </div>
+        <div class="sidebar-search-wrap">
+          <input type="text" id="sidebar-search" placeholder="Search..." autocomplete="off"/>
+          <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="6.5" cy="6.5" r="4.5"/><line x1="10" y1="10" x2="14" y2="14"/>
+          </svg>
+        </div>
+      </div>
+      <div id="panel-bookmarks" class="sidebar-panel active"></div>
+      <div id="panel-history"   class="sidebar-panel"></div>
+      <div id="panel-downloads" class="sidebar-panel">
+        <div class="empty-state">
+          <div class="empty-icon">📂</div>
+          <div class="empty-title">Downloads</div>
+          <p>Download tracking coming soon in Vertex</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── Status bar ──────────────────────────────────── -->
+  <div id="statusbar">
+    <span id="status-url"></span>
+    <span class="status-badge badge-secure" id="badge-secure" style="display:none">🔒 Secure</span>
+    <span class="status-badge badge-adblock" id="badge-adblock">Adblock ON</span>
+  </div>
+
+  <!-- ── Toast container ─────────────────────────────── -->
+  <div id="toast-container"></div>
+
+  <!-- ── Context Menu ────────────────────────────────── -->
+  <div id="context-menu">
+    <div class="ctx-item" id="ctx-new-tab">
+      <span class="ctx-title">New Tab</span>
+      <span class="ctx-kbd">Ctrl+T</span>
+    </div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" id="ctx-reload">
+      <span class="ctx-title">Reload</span>
+      <span class="ctx-kbd">Ctrl+R</span>
+    </div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" id="ctx-settings">
+      <span class="ctx-title">Settings</span>
+    </div>
+  </div>
+
+  <!-- ── Keyboard Overlay ────────────────────────────── -->
+  <div id="kbd-overlay">
+    <div class="kbd-modal">
+      <h3>Keyboard Shortcuts</h3>
+      <div class="kbd-row">
+        <span class="kbd-desc">New Tab</span>
+        <div class="kbd-keys"><span class="kbd">Ctrl</span><span class="kbd">T</span></div>
+      </div>
+      <div class="kbd-row">
+        <span class="kbd-desc">Close Tab</span>
+        <div class="kbd-keys"><span class="kbd">Ctrl</span><span class="kbd">W</span></div>
+      </div>
+      <div class="kbd-row">
+        <span class="kbd-desc">Reload Page</span>
+        <div class="kbd-keys"><span class="kbd">Ctrl</span><span class="kbd">R</span></div>
+      </div>
+      <div class="kbd-row">
+        <span class="kbd-desc">Show Shortcuts</span>
+        <div class="kbd-keys"><span class="kbd">Ctrl</span><span class="kbd">?</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── First Run Onboarding Overlay ────────────────── -->
+  <div id="onboarding-overlay">
+    <div class="onboarding-card">
+      <div class="onboarding-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <h2>Welcome to Vertex</h2>
+      <p>Vertex is designed to be your primary window to the web. Make it yours by setting it as your default browser.</p>
+      
+      <div class="onboarding-actions">
+        <button class="onboarding-btn ob-primary" id="ob-set-default">Set as Default Browser</button>
+        <button class="onboarding-btn ob-secondary" id="ob-pin">Pin to Taskbar</button>
+        <button class="ob-skip" id="ob-skip">Maybe later</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Scripts -->
+<script type="module" src="js/browser.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,153 @@
+/* ═══════════════════════════════════════════════════════════
+   BRAUSER — Extended UI: bookmarks bar, context menu,
+   keyboard shortcuts overlay, find-in-page bar
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Bookmarks Bar ──────────────────────────────────────── */
+#bookmarks-bar {
+  height: 32px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 2px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-shrink: 0;
+  scrollbar-width: none;
+}
+#bookmarks-bar::-webkit-scrollbar { display: none; }
+#bookmarks-bar.hidden { display: none; }
+
+.bm-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 1px solid transparent;
+  transition: background var(--speed), color var(--speed);
+  flex-shrink: 0;
+}
+.bm-chip:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+.bm-chip img { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+
+/* ─── Context Menu ───────────────────────────────────────── */
+#context-menu {
+  position: fixed;
+  z-index: 9998;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 5px;
+  min-width: 188px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+  display: none;
+  animation: ctxIn 130ms var(--ease) forwards;
+}
+#context-menu.open { display: block; }
+@keyframes ctxIn {
+  from { opacity: 0; transform: scale(0.93) translateY(-5px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background var(--speed);
+}
+.ctx-item:hover { background: var(--bg-hover); }
+.ctx-icon { color: var(--text-muted); flex-shrink: 0; }
+.ctx-kbd  { margin-left: auto; font-size: 10px; color: var(--text-muted); font-family: monospace; }
+.ctx-sep  { height: 1px; background: var(--border); margin: 4px 0; }
+.ctx-item.danger { color: #ff5f57; }
+.ctx-item.danger .ctx-icon { color: #ff5f57; }
+.ctx-item.danger:hover { background: rgba(255,95,87,0.1); }
+
+/* ─── Keyboard shortcuts overlay ─────────────────────────── */
+#kbd-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(10px);
+  z-index: 9990;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+#kbd-overlay.open { display: flex; }
+.kbd-modal {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  min-width: 360px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+}
+.kbd-modal h3 { font-size: 14px; font-weight: 600; margin-bottom: 20px; }
+.kbd-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+}
+.kbd-row:last-child { border-bottom: none; }
+.kbd-desc { font-size: 12px; color: var(--text-secondary); }
+.kbd-keys { display: flex; gap: 4px; }
+.kbd {
+  background: var(--bg-overlay);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--text-primary);
+  letter-spacing: 0;
+}
+
+/* ─── Find-in-page bar ───────────────────────────────────── */
+#find-bar {
+  position: absolute;
+  top: 8px;
+  right: 14px;
+  z-index: 300;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+#find-bar.open { display: flex; }
+#find-input {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+  width: 180px;
+}
+#find-input::placeholder { color: var(--text-muted); }
+.find-count { font-size: 11px; color: var(--text-muted); white-space: nowrap; }

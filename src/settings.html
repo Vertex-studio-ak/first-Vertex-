@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Settings — Vertex</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:       #0d0d0f;
+      --surface:  #141416;
+      --elevated: #1c1c1f;
+      --overlay:  #222226;
+      --border:   rgba(255,255,255,0.07);
+      --accent:   #5e9fff;
+      --accent-dim: rgba(94, 159, 255, 0.15);
+      --text:     #f0f0f5;
+      --muted:    #8a8a96;
+      --radius:   12px;
+      --speed:    200ms;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { height:100%; background:var(--bg); font-family:'Inter',system-ui,sans-serif; color:var(--text); -webkit-font-smoothing:antialiased; overflow-y:auto; }
+    ::-webkit-scrollbar { width:4px; } ::-webkit-scrollbar-track { background:transparent; } ::-webkit-scrollbar-thumb { background:var(--overlay); border-radius:2px; }
+
+    .page { max-width:700px; margin:0 auto; padding:60px 24px 100px; }
+    header { margin-bottom:40px; }
+    h1 { font-size:28px; font-weight:600; letter-spacing:-0.02em; margin-bottom:8px; }
+    .header-sub { color:var(--muted); font-size:14px; }
+
+    .section { margin-bottom:40px; }
+    .section-title {
+      font-size:12px; font-weight:600; letter-spacing:0.08em;
+      text-transform:uppercase; color:var(--muted); margin-bottom:12px;
+      padding-left: 4px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    }
+    .row {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:20px 24px; gap:20px;
+      border-bottom:1px solid var(--border);
+      transition: background var(--speed);
+    }
+    .row:hover { background: rgba(255,255,255,0.01); }
+    .row:last-child { border-bottom:none; }
+    .row-info { flex: 1; }
+    .row-label { font-size:14px; font-weight:500; color: var(--text); }
+    .row-sub { font-size:12px; color:var(--muted); margin-top:4px; line-height:1.4; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items:center; justify-content:center;
+      padding: 8px 18px; border-radius: 100px;
+      font-size: 12px; font-weight: 600; border: 1px solid transparent;
+      cursor: pointer; transition: all var(--speed);
+      font-family: inherit; outline: none;
+    }
+    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 12px var(--accent-dim); }
+    .btn-primary:hover { transform: translateY(-1px); filter: brightness(1.1); box-shadow: 0 6px 16px var(--accent-dim); }
+    .btn-secondary { background: var(--elevated); border-color: var(--border); color: var(--text); }
+    .btn-secondary:hover { background: var(--overlay); border-color: var(--muted); }
+    .btn:active { transform: scale(0.97); }
+
+    /* Presets */
+    .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; margin-top: 12px; width: 100%; }
+    .theme-item {
+      aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent;
+      cursor: pointer; overflow: hidden; position: relative;
+      transition: transform 200ms, border-color 200ms;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    .theme-item:hover { transform: translateY(-2px); }
+    .theme-item.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+    .theme-preview { width:100%; height:100%; }
+    .theme-name { 
+      position: absolute; bottom:0; left:0; right:0; padding:4px;
+      background: rgba(0,0,0,0.5); font-size:9px; font-weight:600; text-align:center;
+      backdrop-filter: blur(4px); color: #fff;
+      display: none; /* Hide name, use tooltip or just let color speak */
+    }
+    .theme-item:hover .theme-name { display: block; }
+
+    /* Toggle switch */
+    .toggle { position:relative; width:48px; height:26px; flex-shrink:0; cursor:pointer; }
+    .toggle input { opacity:0; width:0; height:0; }
+    .toggle-track {
+      position:absolute; inset:0;
+      background:var(--elevated); border-radius:20px;
+      border:1px solid var(--border); transition:all 250ms;
+    }
+    .toggle input:checked ~ .toggle-track { background: var(--accent); border-color:transparent; }
+    .toggle-thumb {
+      position:absolute; top:4px; left:4px;
+      width:18px; height:18px; background:#fff;
+      border-radius:50%; transition:transform 250ms cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .toggle input:checked ~ .toggle-track ~ .toggle-thumb { transform:translateX(22px); }
+
+    /* Inputs & Selects */
+    select, input[type="text"] {
+      background:var(--elevated); border:1px solid var(--border);
+      border-radius:8px; color:var(--text); font-family:inherit;
+      font-size:13px; padding:8px 12px; outline:none; transition: border-color 200ms;
+    }
+    select:focus, input:focus { border-color:var(--accent); }
+
+    .footer { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(13,13,15,0.8); backdrop-filter: blur(24px); border-top: 1px solid var(--border); padding: 20px; z-index: 100; }
+    .footer-content { max-width: 700px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+    
+    #toast-msg { color: #34c759; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 300ms; }
+    #toast-msg.show { opacity: 1; }
+    /* Extensions */
+    .ext-card { display: flex; align-items: center; gap: 16px; padding: 16px 24px; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid var(--border); margin-bottom: 10px; }
+    .ext-info { flex: 1; }
+    .ext-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .ext-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .ext-actions { display: flex; gap: 8px; align-items: center; }
+    .btn-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--muted); cursor: pointer; transition: all 200ms; }
+    .btn-icon:hover { background: rgba(255,95,87,0.1); color: #ff5f57; }
+
+    /* Modal */
+    #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); z-index: 1000; display: none; align-items: center; justify-content: center; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; width: 480px; max-width: 90%; padding: 24px; box-shadow: 0 24px 64px rgba(0,0,0,0.6); }
+    .modal-h { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 6px; }
+    .form-group textarea { width: 100%; height: 180px; resize: none; font-family: monospace; }
+  </style>
+</head>
+<body>
+
+<div class="page">
+  <header>
+    <h1>Settings</h1>
+    <p class="header-sub">Customise your browsing experience</p>
+  </header>
+
+  <!-- Customization -->
+  <div class="section">
+    <div class="section-title">Customisation</div>
+    <div class="card">
+      <div class="row" style="flex-direction: column; align-items: flex-start;">
+        <div class="row-info">
+          <div class="row-label">Theme Presets</div>
+          <div class="row-sub">Choose a beautiful colour palette for your browser shell</div>
+        </div>
+        <div class="theme-grid" id="theme-presets">
+          <!-- Presets injected here -->
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-info">
+          <div class="row-label">Glass Blur</div>
+          <div class="row-sub">Effect intensity for sidebars and overlays</div>
+        </div>
+        <input type="range" id="pref-blur" min="0" max="40" value="20" style="width: 150px; accent-color: var(--accent);"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- Appearance -->
+  <div class="section">
+    <div class="section-title">Appearance</div>
+    <div class="card">
+      <div class="row">
+        <div class="row-info">
+          <div class="row-label">Mode</div>
+          <div class="row-sub">Dark or light interface theme</div>
+        </div>
+        <select id="pref-theme">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+        </select>
+      </div>
+      <div class="row">
+        <div class="row-info">
+            <div class="row-label">Font Size</div>
+            <div class="row-sub">Scale the browser UI typography</div>
+        </div>
+        <select id="pref-font-size">
+          <option value="14">Small (14px)</option>
+          <option value="16" selected>Default (16px)</option>
+          <option value="18">Large (18px)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Privacy -->
+  <div class="section">
+    <div class="section-title">Privacy & Security</div>
+    <div class="card">
+      <div class="row">
+        <div class="row-info">
+          <div class="row-label">Ad Blocker</div>
+          <div class="row-sub">Native high-speed ad and tracker blocking</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="pref-adblock" checked/>
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- General -->
+  <div class="section">
+    <div class="section-title">General</div>
+    <div class="card">
+      <div class="row">
+        <div class="row-info">
+          <div class="row-label">Default Browser</div>
+          <div class="row-sub">Set Vertex as your primary system browser</div>
+        </div>
+        <button id="set-default-btn" class="btn btn-secondary">Set as Default</button>
+      </div>
+    </div>
+  </div>
+  <!-- Extensions -->
+  <div class="section">
+    <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+       <span>Extensions</span>
+       <button class="btn btn-primary" style="padding: 4px 12px; height: 26px;" onclick="window.showInstallModal()">+ Add Plugin</button>
+    </div>
+    <div id="extension-list">
+      <!-- Plugins will be rendered here -->
+      <div class="card" style="padding: 30px; text-align: center; color: var(--muted);">
+        <p>No extensions installed.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-content">
+    <span id="toast-msg">✓ Changes saved</span>
+    <button id="save-btn" class="btn btn-primary">Save Settings</button>
+  </div>
+</div>
+
+<script type="module">
+const presets = [
+  { name: 'Vertex Blue', start: '#5e9fff', end: '#a78bfa' },
+  { name: 'Dusty Rose', start: '#4C0519', end: '#FDA4AF' },
+  { name: 'Deep Aqua', start: '#003D44', end: '#FF8A5B' },
+  { name: 'Grape Sorbet', start: '#2E1065', end: '#A855F7' },
+  { name: 'Phantom Mint', start: '#022C22', end: '#2DD4BF' },
+  { name: 'Volcanic Wine', start: '#2B0B14', end: '#FF3E3E' }
+];
+
+let selectedPreset = presets[0];
+const channel = new BroadcastChannel('vertex_internal');
+
+function renderPresets() {
+  const container = document.getElementById('theme-presets');
+  container.innerHTML = '';
+  presets.forEach(p => {
+    const div = document.createElement('div');
+    div.className = `theme-item ${p.name === selectedPreset.name ? 'active' : ''}`;
+    div.innerHTML = `
+      <div class="theme-preview" style="background: linear-gradient(135deg, ${p.start}, ${p.end})"></div>
+      <div class="theme-name">${p.name}</div>
+    `;
+    div.onclick = () => {
+      selectedPreset = p;
+      document.querySelectorAll('.theme-item').forEach(el => el.classList.remove('active'));
+      div.classList.add('active');
+      document.documentElement.style.setProperty('--accent', p.start);
+    };
+    container.appendChild(div);
+  });
+}
+
+channel.postMessage({ type: 'get_settings' });
+
+channel.onmessage = (e) => {
+  if (e.data.type === 'settings_data') {
+    const s = e.data.settings;
+    document.getElementById('pref-theme').value = s.theme || 'dark';
+    document.getElementById('pref-font-size').value = s.font_size || 16;
+    document.getElementById('pref-adblock').checked = s.adblock_enabled !== false;
+    document.getElementById('pref-blur').value = s.glass_blur ?? 20;
+    
+    if (s.accent_start) {
+      selectedPreset = presets.find(p => p.start === s.accent_start) || presets[0];
+      document.documentElement.style.setProperty('--accent', selectedPreset.start);
+    }
+    renderPresets();
+  }
+};
+
+document.getElementById('save-btn').addEventListener('click', () => {
+  const updated = {
+    theme:              document.getElementById('pref-theme').value,
+    font_size:          parseInt(document.getElementById('pref-font-size').value),
+    adblock_enabled:    document.getElementById('pref-adblock').checked,
+    glass_blur:         parseInt(document.getElementById('pref-blur').value),
+    accent_start:       selectedPreset.start,
+    accent_end:         selectedPreset.end,
+    home_page:          'vertex://newtab'
+  };
+  channel.postMessage({ type: 'save_settings', settings: updated });
+
+  const msg = document.getElementById('toast-msg');
+  msg.classList.add('show');
+  setTimeout(() => msg.classList.remove('show'), 2500);
+});
+
+document.getElementById('set-default-btn').addEventListener('click', () => {
+  channel.postMessage({ type: 'register_default_browser' });
+});
+
+renderPresets();
+
+// Extension logic
+const { invoke } = window.__TAURI__.core;
+
+window.showInstallModal = () => document.getElementById('modal-overlay').style.display = 'flex';
+window.hideInstallModal = () => document.getElementById('modal-overlay').style.display = 'none';
+
+async function loadExtensions() {
+  const plugins = await invoke('get_plugins');
+  const container = document.getElementById('extension-list');
+  if (plugins.length === 0) {
+    container.innerHTML = '<div class="card" style="padding: 30px; text-align: center; color: var(--muted);"><p>No extensions installed.</p></div>';
+    return;
+  }
+  container.innerHTML = '';
+  plugins.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'ext-card';
+    card.innerHTML = `
+      <div class="ext-info">
+        <div class="ext-name">${p.name}</div>
+        <div class="ext-desc">${p.description || 'User Script'}</div>
+      </div>
+      <div class="ext-actions">
+        <label class="toggle">
+          <input type="checkbox" ${p.enabled ? 'checked' : ''} onchange="window.toggleExtension('${p.id}', this.checked)">
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+        <button class="btn-icon" onclick="window.deleteExtension('${p.id}')">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+window.toggleExtension = async (id, enabled) => {
+  const plugins = await invoke('get_plugins');
+  const p = plugins.find(x => x.id === id);
+  if (p) {
+    p.enabled = enabled;
+    await invoke('save_plugin', { plugin: p });
+    channel.postMessage({ type: 'plugins_updated' });
+  }
+};
+
+window.deleteExtension = async (id) => {
+  if (confirm('Delete this extension?')) {
+    await invoke('remove_plugin', { id });
+    loadExtensions();
+    channel.postMessage({ type: 'plugins_updated' });
+  }
+};
+
+window.installScript = async () => {
+  const name = document.getElementById('ext-name').value;
+  const script = document.getElementById('ext-code').value;
+  if (!name || !script) return;
+  
+  const plugin = {
+    id: 'p-' + Math.random().toString(36).substring(7),
+    name,
+    description: 'User Script',
+    enabled: true,
+    script,
+    style: null
+  };
+  
+  await invoke('save_plugin', { plugin });
+  window.hideInstallModal();
+  document.getElementById('ext-name').value = '';
+  document.getElementById('ext-code').value = '';
+  loadExtensions();
+  channel.postMessage({ type: 'plugins_updated' });
+};
+
+loadExtensions();
+</script>
+
+<div id="modal-overlay">
+  <div class="modal">
+    <div class="modal-h">Install Extension</div>
+    <div class="form-group">
+      <label>Display Name</label>
+      <input id="ext-name" type="text" placeholder="e.g. YouTube Darker" style="width:100%;">
+    </div>
+    <div class="form-group">
+      <label>JavaScript Code</label>
+      <textarea id="ext-code" placeholder="console.log('Running...');"></textarea>
+    </div>
+    <div class="flex" style="gap:12px; justify-content:flex-end;">
+      <button class="btn btn-secondary" onclick="window.hideInstallModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="window.installScript()">Install</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

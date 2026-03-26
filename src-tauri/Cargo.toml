@@ -1,0 +1,42 @@
+[package]
+name = "vertex"
+version = "0.1.0"
+description = "Advanced minimal browser built with Tauri and Rust"
+authors = ["vertex"]
+edition = "2021"
+
+# Tauri 2 requires a lib entry for the generated context
+[lib]
+name = "vertex_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri        = { version = "2", features = ["unstable"] }
+serde        = { version = "1", features = ["derive"] }
+serde_json   = "1"
+tokio        = { version = "1", features = ["sync", "rt"] }
+dirs         = "5"
+uuid         = { version = "1", features = ["v4"] }
+chrono       = { version = "0.4", features = ["serde"] }
+adblock      = "0.9"
+reqwest      = { version = "0.12", features = ["stream"] }
+futures-util = "0.3"
+rmp          = "=0.8.11"
+tauri-plugin-single-instance = "2"
+winreg       = "0.52"
+# Password Manager crypto stack
+aes-gcm      = "0.10"
+argon2       = "0.5"
+rand         = "0.8"
+base64       = "0.22"
+urlencoding  = "2"
+
+[profile.release]
+panic         = "abort"
+codegen-units = 1
+lto           = true
+opt-level     = "s"
+strip         = true
